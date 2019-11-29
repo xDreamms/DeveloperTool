@@ -88,13 +88,15 @@ namespace  MainSpace
 	
 
 
-
+	std::function<void()> funcc()
+	{
+		g_LocalPlayer->IssueOrder(IssueOrderType::MoveTo, g_LocalPlayer->Position().SwitchYZ(), false);
+		return {};
+	}
 	void OnUpdate()
 	{
-		// if(g_Orbwalker->IsModeActive(eOrbwalkingMode::kModeNone))
-		// {
-		// 	g_LocalPlayer->IssueOrder(IssueOrderType::MoveTo, g_LocalPlayer->Position().SwitchYZ(), false);
-		// }
+		//Anti AFK
+		//g_Common->DelayAction(240000, funcc);
 	}
 
 	void DrawingOnDraw()
@@ -545,12 +547,12 @@ namespace  MainSpace
 
 	void OnPlayAnimationEvent(IGameObject* sender, OnPlayAnimationEventArgs* args)
 	{
-		if(sender->Distance(g_LocalPlayer) < OnPLayAnimationSearchRange->GetInt())
+		if(sender->Distance(g_LocalPlayer) < OnPLayAnimationSearchRange->GetFloat())
 		{
 			if(OnPLayAnimationTeam->GetInt() == 0 && sender->Team() == GameObjectTeam::Chaos)
 			{
-				OnPlayAnimationName = args->AnimationName;
-				OnPlayAnimationSenderName = sender->Name();
+				OnPlayAnimationName = "Animation Name: "+ args->AnimationName;
+				OnPlayAnimationSenderName = "Sender name:" + sender->Name();
 			}
 			if(OnPLayAnimationTeam->GetInt() == 1 && sender->Team() == GameObjectTeam::Order)
 			{
