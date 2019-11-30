@@ -9,9 +9,8 @@ namespace  MainSpace
 	IMenuElement* ObjectSearchRange = nullptr;
 	IMenuElement* OnPLayAnimationTeam = nullptr;
 	IMenuElement* OnPLayAnimationSearchRange = nullptr;
-	IMenuElement* AntiafkEnabled = nullptr;
 	IMenuElement* OnBuffUpdateSearchRange = nullptr;
-	
+	IMenuElement* EnabledAntiAFK = nullptr;
 	
 	void Main::Load()
 	{
@@ -87,16 +86,10 @@ namespace  MainSpace
 
 	
 
-
-	std::function<void()> funcc()
-	{
-		g_LocalPlayer->IssueOrder(IssueOrderType::MoveTo, g_LocalPlayer->Position().SwitchYZ(), false);
-		return {};
-	}
 	void OnUpdate()
 	{
-		//Anti AFK
-		//g_Common->DelayAction(240000, funcc);
+		if (EnabledAntiAFK->GetBool())
+		   g_Orbwalker->MoveTo(g_LocalPlayer->Position());
 	}
 
 	void DrawingOnDraw()
@@ -170,6 +163,12 @@ namespace  MainSpace
 		DrawTextScr(Vector(700, 630), 4294901503, OnDoCastSpellDelay, !OnDoCastSpellDelay.empty());
 		DrawTextScr(Vector(700, 650), 4294901503, OnDoCastSpellRadius, !OnDoCastSpellRadius.empty());
 		DrawTextScr(Vector(700, 670), 4294901503, OnDoCastSpellSpeed, !OnDoCastSpellSpeed.empty());
+
+		DrawTextScr(Vector(700, 700), 3690987775, "My Position", true);
+		DrawTextScr(Vector(700, 720), 3690987775, "===========================", true);
+		std::string myPos = "My Position: X: " + std::to_string(g_LocalPlayer->Position().x) + " Y: " + std::to_string(g_LocalPlayer->Position().y) + " Z: " +
+			std::to_string(g_LocalPlayer->Position().z);
+		DrawTextScr(Vector(700, 740), 4294901503, myPos, !myPos.empty());
 	}
 	
 	void CreateMainMenu()
@@ -190,8 +189,9 @@ namespace  MainSpace
 
 		const auto OnBuffUpdateMenu = MainMenu->AddSubMenu("On Buff Update Settings", "OnBuffUpdateMenu");
 		OnBuffUpdateSearchRange = OnBuffUpdateMenu->AddSlider("Search range: ", "OnBuffUpdateSearchRange", 1000, 0, 5000);
-
 		
+		const auto AntiAFKMenu = MainMenu->AddSubMenu("Anti AFK", "AntiAFKMenu");
+		EnabledAntiAFK = AntiAFKMenu->AddCheckBox("Enable Anti AFK", "EnabledAntiAFK", false);
 	
 	}
 
