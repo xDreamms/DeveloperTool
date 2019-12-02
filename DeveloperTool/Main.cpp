@@ -88,12 +88,18 @@ namespace  MainSpace
 
 	void OnUpdate()
 	{
-		if (EnabledAntiAFK->GetBool())
+		if (EnabledAntiAFK->GetBool() && !g_Orbwalker->IsModeActive(eOrbwalkingMode::kModeCombo)
+			&& !g_Orbwalker->IsModeActive(eOrbwalkingMode::kModeHarass) 
+			&& !g_Orbwalker->IsModeActive(eOrbwalkingMode::kModeLaneClear) 
+			&& !g_Orbwalker->IsModeActive(eOrbwalkingMode::kModeFarm))
 		   g_Orbwalker->MoveTo(g_LocalPlayer->Position());
 	}
 
 	void DrawingOnDraw()
 	{
+		auto pos = g_Renderer->WorldToScreen(g_LocalPlayer->Position() - 50);
+		g_Drawing->AddTextOnScreen(pos, 4294901503, 20, EnabledAntiAFK->GetBool() ? "Anti AFK: Enabled" : "Anti AFK: Not Enabled");
+		
 		std::string cursorpos = "Cursor Position: X: " + std::to_string(g_Common->CursorPosition().x) + " Y: " + std::to_string(g_Common->CursorPosition().y) + " Z: "+
 		std::to_string(g_Common->CursorPosition().z);
 		DrawTextScr(Vector(100, 150), 4294901503, cursorpos, true);
@@ -169,11 +175,32 @@ namespace  MainSpace
 		std::string myPos = "My Position: X: " + std::to_string(g_LocalPlayer->Position().x) + " Y: " + std::to_string(g_LocalPlayer->Position().y) + " Z: " +
 			std::to_string(g_LocalPlayer->Position().z);
 		DrawTextScr(Vector(700, 740), 4294901503, myPos, !myPos.empty());
+
+		std::vector<IGameObject*> minions;
+		for (auto minion : g_ObjectManager->GetByType(EntityType::AIMinionClient))
+		{
+			if(minion->Distance(g_LocalPlayer->Position()) < 1000)
+			{
+				minions.push_back(minion);
+			}
+		}
+
+		std::sort(minions.begin(), minions.end(), [](IGameObject*& a, IGameObject*& b) ->bool {
+			return a->Distance(g_LocalPlayer) < b->Distance(g_LocalPlayer);
+			});
+
+		if(!minions.empty())
+		{
+			DrawTextScr(Vector(700, 760), 4294901503, "Minion's name arround me: "+minions.front()->Name(), true);
+		}
+		DrawTextScr(Vector(700, 780), 4294901503, "My Champion name: " + g_LocalPlayer->ChampionName(), true);
+		DrawTextScr(Vector(700, 800), 4294901503, "My Bonus ability power: " + std::to_string((g_LocalPlayer->TotalAbilityPower() - g_LocalPlayer->BaseAbilityDamage())), true);
+		DrawTextScr(Vector(700, 820), 4294901503, "My Bonus attack damage: " + std::to_string((g_LocalPlayer->TotalAttackDamage() - g_LocalPlayer->BaseAttackDamage())) ,true);
 	}
 	
 	void CreateMainMenu()
 	{
-		MainMenu = g_Menu->CreateMenu("Developer Tool", "DeveloperTool");
+		MainMenu = g_Menu->CreateMenu("Developer Tool by xDreamms", "DeveloperTool");
 
 		//Settings Menu
 		const auto SettingsMenu = MainMenu->AddSubMenu("Settings", "Settings");
@@ -191,7 +218,7 @@ namespace  MainSpace
 		OnBuffUpdateSearchRange = OnBuffUpdateMenu->AddSlider("Search range: ", "OnBuffUpdateSearchRange", 1000, 0, 5000);
 		
 		const auto AntiAFKMenu = MainMenu->AddSubMenu("Anti AFK", "AntiAFKMenu");
-		EnabledAntiAFK = AntiAFKMenu->AddCheckBox("Enable Anti AFK", "EnabledAntiAFK", false);
+		EnabledAntiAFK = AntiAFKMenu->AddCheckBox("Enable Anti AFK (Change with middle mouse)", "EnabledAntiAFK", false);
 	
 	}
 
@@ -221,6 +248,10 @@ namespace  MainSpace
 	void OnWndProcEvent(OnWndProcEventArgs* args)
 	{
 		OnWndProcuMsg = "OnWndPrc uMsg: " + std::to_string(args->uMsg);
+		if(args->uMsg == 519)
+		{
+			EnabledAntiAFK->SetBool(!EnabledAntiAFK->GetBool());
+		}
 	}
 
 	void GameObjectOnCreate(IGameObject* sender)
@@ -549,16 +580,8 @@ namespace  MainSpace
 	{
 		if(sender->Distance(g_LocalPlayer) < OnPLayAnimationSearchRange->GetFloat())
 		{
-			if(OnPLayAnimationTeam->GetInt() == 0 && sender->Team() == GameObjectTeam::Chaos)
-			{
 				OnPlayAnimationName = "Animation Name: "+ args->AnimationName;
 				OnPlayAnimationSenderName = "Sender name:" + sender->Name();
-			}
-			if(OnPLayAnimationTeam->GetInt() == 1 && sender->Team() == GameObjectTeam::Order)
-			{
-				OnPlayAnimationName = args->AnimationName;
-				OnPlayAnimationSenderName = sender->Name();
-			}
 		}
 	}
 	
