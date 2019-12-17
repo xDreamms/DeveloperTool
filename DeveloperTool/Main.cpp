@@ -84,15 +84,28 @@ namespace  MainSpace
 	std::string OnDoCastSpellRadius = "";
 	std::string OnDoCastSpellSpeed = "";
 
-	
-
+	bool IsMoving()
+	{
+		return g_LocalPlayer->Path().capacity() >= 2;
+	}
+	float LastMoveCommandTick = 0;
+	void AntiAfk()
+	{
+		if (g_Common->TickCount() - LastMoveCommandTick > 120000)
+		{
+			g_LocalPlayer->IssueOrder(IssueOrderType::MoveTo,g_LocalPlayer->Position());
+			LastMoveCommandTick = g_Common->TickCount();
+		}
+	}
 	void OnUpdate()
 	{
 		if (EnabledAntiAFK->GetBool() && !g_Orbwalker->IsModeActive(eOrbwalkingMode::kModeCombo)
-			&& !g_Orbwalker->IsModeActive(eOrbwalkingMode::kModeHarass) 
-			&& !g_Orbwalker->IsModeActive(eOrbwalkingMode::kModeLaneClear) 
-			&& !g_Orbwalker->IsModeActive(eOrbwalkingMode::kModeFarm))
-		   g_Orbwalker->MoveTo(g_LocalPlayer->Position());
+			&& !g_Orbwalker->IsModeActive(eOrbwalkingMode::kModeHarass)
+			&& !g_Orbwalker->IsModeActive(eOrbwalkingMode::kModeLaneClear)
+			&& !g_Orbwalker->IsModeActive(eOrbwalkingMode::kModeFarm) 
+			&& !g_Orbwalker->IsModeActive(eOrbwalkingMode::kModeFlee) 
+			&& !IsMoving())
+			AntiAfk();
 	}
 
 	void DrawingOnDraw()
