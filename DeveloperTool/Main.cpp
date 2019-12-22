@@ -11,6 +11,10 @@ namespace  MainSpace
 	IMenuElement* OnPLayAnimationSearchRange = nullptr;
 	IMenuElement* OnBuffUpdateSearchRange = nullptr;
 	IMenuElement* EnabledAntiAFK = nullptr;
+	IMenuElement* EnabledMyCircle = nullptr;
+	IMenuElement* MyCircleRange = nullptr;
+	IMenuElement* CircleMode = nullptr;
+
 	
 	void Main::Load()
 	{
@@ -110,6 +114,18 @@ namespace  MainSpace
 
 	void DrawingOnDraw()
 	{
+		if(EnabledMyCircle->GetBool())
+		{
+			switch (CircleMode->GetInt())
+			{
+			case 0:
+				g_Drawing->AddCircle(g_LocalPlayer->Position(), MyCircleRange->GetInt(), 3691027967, 1.75f);
+				break;
+			case 1:
+				g_Drawing->AddCircle(g_Common->CursorPosition(), MyCircleRange->GetInt(), 3691027967, 1.75f);
+				break;
+			}
+		}
 		auto pos = g_Renderer->WorldToScreen(g_LocalPlayer->Position() - 50);
 		g_Drawing->AddTextOnScreen(pos, 4294901503, 20, EnabledAntiAFK->GetBool() ? "Anti AFK: Enabled" : "Anti AFK: Not Enabled");
 		
@@ -232,7 +248,11 @@ namespace  MainSpace
 		
 		const auto AntiAFKMenu = MainMenu->AddSubMenu("Anti AFK", "AntiAFKMenu");
 		EnabledAntiAFK = AntiAFKMenu->AddCheckBox("Enable Anti AFK (Change with middle mouse)", "EnabledAntiAFK", false);
-	
+
+		const auto Drawing = MainMenu->AddSubMenu("Drawing", "Drawing");
+		EnabledMyCircle = Drawing->AddCheckBox("Enable My Circle","EnabledMyCircle",true);
+		MyCircleRange = Drawing->AddSlider("My Circle Range","MyCircleRange",1000,0,5000);
+		CircleMode = Drawing->AddComboBox("Circle center: ", "CircleMode", std::vector<std::string>{"Me", "Cursor position"}, 0);
 	}
 
 	void CreateEvents()
