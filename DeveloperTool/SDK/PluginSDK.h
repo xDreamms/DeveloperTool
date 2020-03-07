@@ -37,7 +37,7 @@
 */
 
 #define PLUGIN_API	extern "C" __declspec(dllexport)
-#define PLUGIN_SDK_VERSION 20
+#define PLUGIN_SDK_VERSION 22
 
 #define DECLARE_GLOBALS(PLUGIN_SDK) \
 	g_PluginSDK         = PLUGIN_SDK; \
@@ -85,7 +85,6 @@ bool StringEquals(const char* strA, const char* strB, bool ignore_case = FALSE);
 
 		return hash;
 	}
-	#define hash(x) fnv_hash(x)
 #pragma warning( pop ) 
 
 class IGameObject;
@@ -207,9 +206,9 @@ public:
 	virtual float BuffTimeLeft(const uint32_t buff_hash) = 0;
 
 	// Wrappers for easier usage
-	__forceinline IBuffInstance GetBuff(const char* BuffName) { return GetBuff(hash(BuffName)); }
-	__forceinline bool HasBuff(const char* BuffName) { return HasBuff(hash(BuffName)); }
-	__forceinline bool BuffTimeLeft(const char* BuffName) { return BuffTimeLeft(hash(BuffName)); }
+	__forceinline IBuffInstance GetBuff(const char* BuffName) { return GetBuff(fnv_hash(BuffName)); }
+	__forceinline bool HasBuff(const char* BuffName) { return HasBuff(fnv_hash(BuffName)); }
+	__forceinline bool BuffTimeLeft(const char* BuffName) { return BuffTimeLeft(fnv_hash(BuffName)); }
 
 	virtual bool HasPerk(std::string const& perk_name) = 0;
 	virtual bool HasPerk(int32_t perk_id) = 0;
@@ -238,8 +237,8 @@ public:
 	virtual float Exp() = 0;
 	virtual float Gold() = 0;
 	virtual float ExperiencePercent() = 0;
-	virtual float AttackDelay() = 0;
-	virtual float AttackCastDelay() = 0;
+	virtual float AttackDelay(int slot) = 0;
+	virtual float AttackCastDelay(int slot) = 0;
 	virtual float AdditionalAttackDamage() = 0;
 	virtual float TotalAttackDamage() = 0;
 	virtual float TotalAbilityPower() = 0;
@@ -471,10 +470,16 @@ public:
 class ICamera
 {
 public:
-	virtual Vector CameraPosition() = 0;
+	// All of those are actually writable
+	virtual float& CurrentZoomDistance() = 0;
+	virtual float& TargetZoomDistance() = 0;
 
-	virtual float CurrentZoomDistance() = 0;
-	virtual float TargetZoomDistance() = 0;
+	virtual Vector& CameraPos1() = 0;
+	virtual Vector& CameraPos2() = 0;
+	virtual Vector& CameraAngles() = 0;
+	virtual float& CameraFOV() = 0;
+
+	virtual void SetZoomDistance(float value) = 0;
 };
 
 class INavMesh
@@ -692,6 +697,7 @@ public:
 	virtual void SetColor(uint32_t const& _value) = 0;
 	virtual void SetFloat(float const _value) = 0;
 
+	virtual void SetTooltip(const char* _value) = 0;
 };
 
 class IMenu
